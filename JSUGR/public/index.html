@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-Type" content="text/html; charset=UTF-8">
+
+		<title>JS UGR</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		
+		<!-- jQuery -->
+		<script src="http://code.jquery.com/jquery.js"></script>
+		
+		<!-- Bootstrap -->
+		<link href="addons/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
+		<link href="addons/bootstrap/css/bootstrap-responsive.css" rel="stylesheet" media="screen">
+		<script src="addons/bootstrap/js/bootstrap.js"></script>
+
+		<!--jQuery Terminal-->
+		<script src="addons/jquery-terminal/jquery.terminal-0.6.2.js"></script>
+		<script src="addons/jquery-terminal/jquery.mousewheel-min.js"></script>
+		<link href="addons/jquery-terminal/jquery.terminal.css" rel="stylesheet"/>
+		
+		<!-- codemirror-->
+		<script src="addons/codemirror-3.13/lib/codemirror.js"></script>
+		<script src="addons/codemirror-3.13/mode/javascript/javascript.js"></script>
+		<script src="addons/codemirror-3.13/mode/css/css.js"></script>
+		<script src="addons/codemirror-3.13/mode/xml/xml.js"></script>
+		<script src="addons/codemirror-3.13/mode/htmlmixed/htmlmixed.js"></script>
+		<script src="addons/codemirror-3.13/addon/lint/javascript-lint.js"></script>
+		<script src="addons/codemirror-3.13/addon/lint/lint.js"></script>
+		<script src="http://ajax.aspnetcdn.com/ajax/jshint/r07/jshint.js"></script>
+		<link rel=stylesheet href="addons/codemirror-3.13/lib/codemirror.css">
+		<link rel=stylesheet href="addons/codemirror-3.13/addon/lint/lint.css">
+		<script src="http://ajax.aspnetcdn.com/ajax/jshint/r07/jshint.js"></script>
+
+		<!-- style -->
+		<link id="page_favicon" href="/favicon.ico" rel="icon" type="image/x-icon" />
+		<link rel=stylesheet href="css/index.css">
+	
+		<!-- Star Rating -->
+		<script src="addons/star_rating/jquery.rating.js"></script>
+		<link href="addons/star_rating/jquery.rating.css"rel='stylesheet' type='text/css'>
+
+
+
+		<!--funciones javascript-->
+		<script src="js/scripts.js"></script>
+		<script src="js/jsUgrSession.jQuery.js"></script>
+		<script src="js/jsUgrFileMgmt.jQuery.js"></script>
+		
+		<!--global variables and functions-->
+		<script type="text/javascript">
+		var server = "aap.eu01.aws.af.cm";
+			var nodePort= "80";
+			window.closeModal = function(data){
+				$(document).trigger('recheck');
+    			$('#div-recover').modal('hide');
+    			$('#div-register').modal('hide');
+    			if(data.lastLogin){
+    				var now=new Date(data.lastLogin);
+					var lastdate=now.getFullYear()+'/'+pad(now.getMonth()+1)+'/'+pad(now.getDate())+' - '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+    				$('#error-notifications').html('<div class="alert alert-success fade in">\nWelcome back, '+data.user+'. Your last login was '+lastdate+'<a class="close" data-dismiss="alert" href="#">&times;</a></div>');
+    			}else{
+					$('#error-notifications').html('<div class="alert alert-success fade in">\nWelcome, '+data.user+'. Please check out the help section.<a class="close" data-dismiss="alert" href="#">&times;</a></div>');
+				}
+			};
+			window.printErrors = function(error){
+				terminal_errores.error("> EXEC error catched: "+error);
+			}
+		</script>
+		
+		<!-- Login check -->
+		<script type="text/javascript">
+			$(document).jsUgrCheck(function(data) {
+				$('#img-loading').hide();
+				if (data.ok) {
+					//show logout form
+					$('#login-span').hide();
+					$('#logout-span').show();
+					$("#logout").html("log out: "+data.user);
+					//destroy login prompt popovers
+					$('#save-publish').popover('destroy');
+					//Set home button address
+					document.getElementById('btn-home').setAttribute("href","/users/"+data.user+"/index.html?id="+makeid());
+					// show the home button
+					$('#btn-home').show();
+				} else {
+					//show login form
+					$('#login-span').show();
+					$('#logout-span').hide();
+					//delete username from logout form
+					$("#logout").html("log out");
+					//hide home button
+					$('#btn-home').hide();
+					//create login prompt popovers
+					$('#save-publish').popover({trigger: 'hover', placement: 'top',content: 'Log in or register to use this feature.'});
+
+				}
+			});
+		</script>
+		
+		<!--login - logout functions -->
+		<script type="text/javascript">
+			$(document).ready(function() {
+				$("#login").jsUgrLogin(function(data) {
+					if (!data.ok) {
+						$("#recoverBtn").hide();
+						if(data.error){
+							writeAlert('error-notifications',data.error+": "+data.reason);
+							$("#recoverBtn").show();
+						}
+					}else{
+						//delete user and password from hidden login form
+						$('.jsUgr.user').find('input').val('');
+						$('.jsUgr.pass').find('input').val('');
+						// hide password recovery button
+						$("#recoverBtn").hide();
+						//display welcome message
+						if(data.lastLogin){
+							var now=new Date(data.lastLogin);
+							var lastdate=now.getFullYear()+'/'+pad(now.getMonth()+1)+'/'+pad(now.getDate())+' - '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+							$('#error-notifications').html('<div class="alert alert-success fade in">\nWelcome back, '+data.user+'. Your last login was '+lastdate+'<a class="close" data-dismiss="alert" href="#">&times;</a></div>');
+						}else{
+							$('#error-notifications').html('');
+						}
+					}
+					//recheck the document to add logged-in functionalities
+					$(document).trigger('recheck');
+				});
+				$("#logout").jsUgrLogout(function(data) {
+					if (!data.ok) {
+						if(data.error)
+							writeAlert('error-notifications',data.error+": "+data.reason);
+					}else{
+						//delete alert
+						$(".alert").alert('close');
+					}
+					$(document).trigger('recheck');
+				});
+				// trigger login if user presses enter on pass or username
+				$('#input-password').keypress(function(e) {
+				    if(e.which == 13) {
+				       $('#login').trigger('click');
+				    }
+				});
+				$('#input-username').keypress(function(e) {
+				    if(e.which == 13) {
+				       $('#login').trigger('click');
+				    }
+				});
+			});
+		</script>
+		
+		<!-- Codemirror script and save-delete-load-publish functionalities-->
+		<script type="text/javascript">
+			$(document).ready(function() {
+				//create codemirror editors
+				var editor_css = CodeMirror.fromTextArea(document.getElementById('code_css'), {
+					mode : 'text/css',
+					tabMode : 'indent',
+					gutters : ["CodeMirror-lint-markers"],
+					lineNumbers : true
+				});
+				var editor_js = CodeMirror.fromTextArea(document.getElementById('code_js'), {
+					mode : 'text/javascript',
+					tabMode : 'indent',
+					lineNumbers : true,
+					gutters : ["CodeMirror-lint-markers"],
+					lintWith : CodeMirror.javascriptValidator
+				});
+				var editor_html = CodeMirror.fromTextArea(document.getElementById('code_html'), {
+					mode : 'text/html',
+					tabMode : 'indent',
+					gutters : ["CodeMirror-lint-markers"],
+					lineNumbers : true
+				});
+				
+				// define bootstrap tabs
+				$('#myTab a').click(function(e) {
+					e.preventDefault();
+					$(this).tab('show');
+				});
+				$('#myTab a[href="#HTML"]').click(function() {
+					$('#myTab a[href="#HTML"]').tab('show');
+					editor_html.refresh();
+				});
+				$('#myTab a[href="#CSS"]').click(function() {
+					$('#myTab a[href="#CSS"]').tab('show');
+					editor_css.refresh();
+				});
+				$('#myTab a[href="#JS"]').click(function() {
+					$('#myTab a[href="#JS"]').tab('show');
+					editor_js.refresh();
+				});
+				
+				// code for preview functionality. preview triggers on any change in values
+				var delay;
+				editor_html.on("change", function() {
+					clearTimeout(delay);
+					delay = setTimeout(updatePreview, 300);
+				});
+				editor_css.on("change", function() {
+					clearTimeout(delay);
+					delay = setTimeout(updatePreview, 300);
+				});
+				editor_js.on("change", function() {
+					clearTimeout(delay);
+					delay = setTimeout(updatePreview, 300);
+				});
+				$("#libraries a.library").click(function(e){
+					e.stopPropagation()
+					clearTimeout(delay);
+					delay = setTimeout(updatePreview, 300);
+				});
+				$('#stop-preview').click(function(){
+					clearTimeout(delay);
+					delay = setTimeout(updatePreview, 300);
+				});
+				function updatePreview() {
+					terminal_errores.clear();
+					JSHINT(editor_js.getValue());
+					for (var i = 0; i < JSHINT.errors.length; ++i) {
+						var err = JSHINT.errors[i];
+						if (!err)
+							continue;
+						terminal_errores.error("> JSHINT: line " + err.line + ": " + err.reason);
+					}
+					if (JSHINT.errors.length != 0) {
+						terminal_errores.echo("> JS will not be rendered untill JSHint returns no errors in it.");
+					}else{
+						terminal_errores.echo("> JSHint: no errors found.");
+					}
+							
+					if($('#stop-preview').hasClass('active')){
+						terminal_errores.echo("> Preview update disabled. The changes in your code will not reflect on the preview.");
+					}else{
+						var libraries=[];
+						$("#libraries a.library.selected").each(function(index){
+							libraries['library'+index]=$(this).attr('value');
+						});
+						var previewFrame = document.getElementById('preview');
+						var preview = previewFrame.contentDocument || previewFrame.contentWindow.document;
+						preview.open();
+						preview.write('<head>');
+						for(i in libraries){
+							preview.write('<script src=' + libraries[i] + '><\/script>\n');
+						}
+
+						if (JSHINT.errors.length == 0) {
+							preview.write('<script type="text/javascript">\n');
+							preview.write('function windowError(message, url, line) {\nline= line-6;\nwindow.parent.printErrors("line "+line+": "+message);\n}\nwindow.onerror=windowError;\n');
+							//preview.write('try{\n');
+							preview.write(editor_js.getValue() + '\n');
+							//preview.write('}catch(e){window.parent.printErrors(e)}\n');
+							preview.write('<' + '/sc' + 'ript>');
+						}
+						var css_data=editor_css.getValue();
+						var test_css=css_data.split("<");
+						if(test_css.length==1){
+							preview.write('<style type="text/css">\n');
+							preview.write(css_data + '\n');
+							preview.write('</style>\n');
+						}else {
+							terminal_errores.error("> No HTML allowed in CSS tab");
+						}
+						preview.write('</head>');
+						preview.write('<body>');
+						var html_data=editor_html.getValue();
+						var test1_html=html_data.split("<script");
+						var test2_html=html_data.split("<"+"/script");
+						if(test1_html.length==1 && test2_html.length==1){
+							preview.write(html_data + '\n');
+						}else {
+							terminal_errores.error("> No javascript allowed in HTML tab. Write your functions in the JS tab");
+						}
+						preview.write('</body>');
+						preview.close();
+
+					}
+				}
+				setTimeout(updatePreview, 300);
+
+				// Save button code
+				$('#btn-save').jsUgrSave({
+					editor_html : editor_html,
+					editor_css : editor_css,
+					editor_js : editor_js
+				}, function(data) {
+					if (!data.ok) {
+						if(data.error)
+							writeAlert('error-notifications',data.error+": "+data.reason);
+					} 
+					$(document).trigger('recheck');
+
+				});
+				
+				//publish button code
+				$('#btn-publish').jsUgrPublish({
+					editor_html : editor_html,
+					editor_css : editor_css,
+					editor_js : editor_js
+				}, function(data) {
+					if (!data.ok) {
+						if(data.error)
+							writeAlert('error-notifications',data.error+": "+data.reason);
+					} 
+					$(document).trigger('recheck');
+				});
+				
+				// save list creation. 
+				$(document).jsUgrList(function(data) {
+					if (!data.ok) {
+						if(data.error)
+							writeAlert('error-notifications',data.error+": "+data.reason);
+					}
+					$('.file-delete').jsUgrDelete(function(data) {
+						if (!data.ok) {
+							if(data.error)
+								writeAlert('error-notifications',data.error+": "+data.reason);
+						}
+						$(document).trigger('recheck');
+					});
+					$('.file-update').jsUgrOverwrite({
+						editor_html : editor_html,
+						editor_css : editor_css,
+						editor_js : editor_js
+					}, function(data) {
+						if (!data.ok) {
+							if(data.error)
+								writeAlert('error-notifications',data.error+": "+data.reason);
+						}
+						$(document).trigger('recheck');
+					});
+					$('.file-share').each(function(){
+						var id=$(this).parent().attr('value');
+						$(this).popover({
+							trigger: 'click', 
+							placement: 'right',
+							html: 'true',
+							content: '<input class="share-url" style="margin-bottom: 0px;" onClick="this.select();" type="text" value="http://'+server+'/index.html?action=share&id='+id+'">'
+						});
+					});
+					$('.this-file-load').jsUgrGet(function(data) {
+						if (!data.ok) {
+							if(data.error)
+								writeAlert('error-notifications',data.error+": "+data.reason);
+						}
+						if (data.body) {
+							editor_html.setValue(data.body.html);
+							editor_css.setValue(data.body.css);
+							editor_js.setValue(data.body.js);
+							$("#libraries a.library").each(function(index) {
+								$(this).removeClass('selected').trigger('click').trigger('click');
+							});
+							for (i in data.body.library) {
+								$("#libraries a.library[value='" + data.body.library[i] + "']").trigger('click');
+							}
+							$('#input-title').val(data.body.title);
+						}
+						$(document).trigger('recheck');
+					});
+					$('#load-blank').click(function(){
+						editor_html.setValue("");
+						editor_css.setValue("");
+						editor_js.setValue("");
+						$("#libraries a.library").each(function(index) {
+							$(this).addClass('selected').trigger('click');
+						});
+						$('#input-title').val("");
+					});
+				});
+				
+				//share code. It uses a hidden button
+				var action = getVar('action');
+				var code = getVar('id');
+				if(action=='share'){
+					$('#share-load').jsUgrShare(code,function(data) {
+						if (!data.ok) {
+							if(data.error)
+								if(data.error="not_found"){
+									writeAlert('error-notifications'," Shared file not found: "+data.reason);
+								}else{
+									writeAlert('error-notifications',data.error+": "+data.reason);
+								}
+						}
+						if (data.body) {
+							editor_html.setValue(data.body.html);
+							editor_css.setValue(data.body.css);
+							editor_js.setValue(data.body.js);
+							$("#libraries a.library").each(function(index) {
+								$(this).removeClass('selected');
+							});
+							for (i in data.body.library) {
+								$("#libraries a.library[value='" + data.body.library[i] + "']").trigger('click');
+							}
+							$('#input-title').val(data.body.title);
+							$('#error-notifications').html('<div class="alert alert-success fade in">\nFile shared by '+data.body.user+'. <a class="close" data-dismiss="alert" href="#">&times;</a></div>');
+
+						}
+					});
+					$('#share-load').trigger('click');
+				}
+			});
+		</script>
+		
+		<!--libraries dropdown function -->
+		<script type="text/javascript">
+			$(document).ready(function() {
+				$('#libraries a.library').click(function() {
+					$(this).toggleClass("selected");
+					var amount = 0;
+					$('#libraries a.library').each(function(index) {
+						if ($(this).hasClass('selected')) {
+							amount += 1;
+							$('#libraries span.label').html(amount);
+							$('#libraries span.label').addClass('label-info');
+						}
+						if (amount == 0) {
+							$('#libraries span.label').removeClass('label-info');
+							$('#libraries span.label').html(0);
+						}
+					});
+				});
+			});
+		</script>
+		
+	</head>
+	<body>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="brand" href="">JS UGR</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li>
+								<a href="#div-about" data-toggle="modal">About</a>
+							</li>
+							<li>
+								<a href="#div-feedback" data-toggle="modal">Feedback</a>
+							</li>
+							<li>
+								<a href="#div-help" data-toggle="modal">FAQ</a>
+							</li>
+						</ul>
+						<!-- Login - Logout form -->
+						<form class="navbar-form pull-right" _lpchecked="1">
+							<img src="image/login_loader.gif" alt="loading" id="img-loading">
+							<span id="login-span" style="display: none"> 
+								<span class="jsUgr user">
+									<input id="input-username" class="span2" type="text" placeholder="Username">
+								</span> 
+								<span class="jsUgr pass">
+									<input id="input-password" class="span2" type="password" placeholder="Password">
+								</span>
+								<button id="login" type="button" class="btn">Sign in</button> 
+								<a href="#div-register" id="openBtn" role="button" class="btn" data-toggle="modal">Register</a> 
+								<a href="#div-recover" style="display: none" id="recoverBtn" role="button" class="btn btn-danger" data-toggle="modal">Recover</a>
+							</span>
+							<span id="logout-span" style="display: none"> 
+								<button id="logout" type="button" class="btn">
+									Log out
+								</button> 
+							</span>
+						</form>
+					</div><!--/.nav-collapse -->
+				</div><!--/.container -->
+			</div> <!--/.navbar-inner -->
+		</div><!--/.navbar -->
+		<!-- Registration div -->
+		<div id="div-register" class="modal hide fade" tabindex="-1" role="dialog">
+			<div class="modal-body">
+				<iframe id="iframe-registro" src="userMgmt/register.html" width="100%" height="400" frameborder="0"></iframe>
+			</div>
+		</div>
+		<div id="div-recover" class="modal hide fade" tabindex="-1" role="dialog">
+			<div class="modal-body">
+				<iframe id="iframe-recover" src="userMgmt/pwReset.html" width="100%" height="400" frameborder="0"></iframe>
+			</div>
+		</div>
+		
+		<div id="div-about" class="modal hide fade" tabindex="-1" role="dialog">
+			<div class="modal-body">
+				<p>Developed by Leonardo Almagro, Valentín Sanchez, Luis Reyes and Fabian Vroom for the subject "Arquitectura de Altas Prestaciones" on UGR</p>
+				<div id="credits">
+					<a href="http://nodejs.org/"><img src="image/nodejs.png" title="Node.js" alt="Node.js"/></a>
+					<a href="http://twitter.github.io/bootstrap/"><img src="image/bootstrap.png" title="Bootstrap" alt="Bootstrap"/></a>
+					<a href="http://couchdb.apache.org/"><img src="image/couchdb.png" title="CouchDb" alt="CouchDb"/></a>
+					<a href="http://jquery.com/"><img src="image/jQuery.png" title="JQuery" alt="JQuery"/></a>
+					<a href="http://codemirror.net/"><img src="image/codemirror.png" title="Codemirror" alt="Codemirror"/></a>
+					<a href="http://terminal.jcubic.pl/"><img src="image/jquery terminal.png" title="jCubic Terminal" alt="jCubic Terminal"/></a>
+				</div>
+			</div>
+		</div>
+		
+		<div id="div-feedback" class="modal hide fade" tabindex="-1" role="dialog">
+			<div class="modal-body">
+				<div id="poll">
+					<div id="FAQ">
+						<strong>Please take a few minutes to answer these questions.</strong>
+					</div>
+					<form id="form_encuesta">
+						<table class="table table-hover table-condensed">
+						<tr>
+							<td>
+								Do you find it a usefull service?
+							</td>
+							<td>
+								<input name="answer1" type="radio" class="star"  value="1"/>
+								<input name="answer1" type="radio" class="star"  value="2"/>
+								<input name="answer1" type="radio" class="star"  value="3"/>
+								<input name="answer1" type="radio" class="star"  value="4"/>
+								<input name="answer1" type="radio" class="star"  value="5"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Is it easy to use?
+							</td>
+							<td>
+								<input name="answer2" type="radio" class="star"  value="1"/>
+								<input name="answer2" type="radio" class="star"  value="2"/>
+								<input name="answer2" type="radio" class="star"  value="3"/>
+								<input name="answer2" type="radio" class="star"  value="4"/>
+								<input name="answer2" type="radio" class="star"  value="5"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Does it work like expected?
+							</td>
+							<td>
+								<input name="answer3" type="radio" class="star"  value="1"/>
+								<input name="answer3" type="radio" class="star"  value="2"/>
+								<input name="answer3" type="radio" class="star"  value="3"/>
+								<input name="answer3" type="radio" class="star"  value="4"/>
+								<input name="answer3" type="radio" class="star"  value="5"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Is it fast?
+							</td>
+							<td>
+								<input name="answer4" type="radio" class="star"  value="1"/>
+								<input name="answer4" type="radio" class="star"  value="2"/>
+								<input name="answer4" type="radio" class="star"  value="3"/>
+								<input name="answer4" type="radio" class="star"  value="4"/>
+								<input name="answer4" type="radio" class="star"  value="5"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Would you reccomend it?
+							</td>
+							<td>
+								<input name="answer5" type="radio" class="star"  value="1"/>
+								<input name="answer5" type="radio" class="star"  value="2"/>
+								<input name="answer5" type="radio" class="star"  value="3"/>
+								<input name="answer5" type="radio" class="star"  value="4"/>
+								<input name="answer5" type="radio" class="star"  value="5"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Global Rating:
+							</td>
+							<td>
+								<input name="answer6" type="radio" class="star"  value="1"/>
+								<input name="answer6" type="radio" class="star"  value="2"/>
+								<input name="answer6" type="radio" class="star"  value="3"/>
+								<input name="answer6" type="radio" class="star"  value="4"/>
+								<input name="answer6" type="radio" class="star"  value="5"/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Did you have any problem using the service?
+							</td>
+							<td>
+								<input name="answer7" type="text" value=""/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Do you have any suggestion?
+							</td>
+							<td>
+								<input name="answer8" type="text" value=""/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Do you have any doubt to add to the FAQ?
+							</td>
+							<td>
+								<input name="answer9" type="text" value=""/>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Optional. Write down your email if you'd like us to reply.
+							</td>
+							<td>
+								<input name="answer10" type="text" value=""/>
+							</td>
+						</tr>
+						</table>
+					</form>
+						<button class="btn" id="send-poll">Send</button>
+					
+				</div>
+				<script type="text/javascript">
+					$("#send-poll").click(function(){
+						$.post(
+							'/poll',
+							$('#form_encuesta').serializeArray(),
+							function(data){
+								if(data.ok){
+									alert("Data sent. Thank you");
+								}else{
+									alert("Server error");
+								}
+							}
+						);
+						$('#div-feedback').modal('hide');
+					});
+				</script>
+			</div>
+		</div>
+		<div id="div-help" class="modal hide fade" tabindex="-1" role="dialog">
+			<div class="modal-body">
+				<div class="accordion" id="accordion2">
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne"> What is this? </a>
+						</div>
+						<div id="collapseOne" class="accordion-body collapse">
+							<div class="accordion-inner">
+								JS UGR is a HTML, CSS and JSS testing and publishing online app. If you register an account you can save, organize, publish and share your web projects and code snippets.
+							</div>
+						</div>
+					</div>
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo"> Do I have to Register?</a>
+						</div>
+						<div id="collapseTwo" class="accordion-body collapse">
+							<div class="accordion-inner">
+								Not necessarily, but registering takes only a few clicks and is totally free. Plus you get access to a lot of nice features. 
+							</div>
+						</div>
+					</div>
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapsethree"> How does it work?</a>
+						</div>
+						<div id="collapsethree" class="accordion-body collapse">
+							<div class="accordion-inner">
+								In the main page you can find 2 sections. On the left there are 3 code editors where you can write your HTML, CSS and javascript code. As you type, you will see the result of your code appear in the left window, and any errors you may let slip will show on the console at the bottom of the page. You can also execute javascript commands in the console, but be aware that they will execute on the main frame unless you specify otherwise!
+							</div>
+						</div>
+					</div>
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapsefour"> Can I use jQuery or other libraries?</a>
+						</div>
+						<div id="collapsefour" class="accordion-body collapse">
+							<div class="accordion-inner">
+								On top of the code editors, there is a dropdown where you can specify the libraries that will be included in your code. If you want to use a different one, send us some feeback and we'll look into it ASAP.
+							</div>
+						</div>
+					</div>
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse5"> How do I save my code?</a>
+						</div>
+						<div id="collapse5" class="accordion-body collapse">
+							<div class="accordion-inner">
+								Just click the <i>Save new</i> button under the code editor and you will see the new entry appear in the <i>My Files</i> menu.
+							</div>
+						</div>
+					</div>
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse6"> How do I publish to my home page?</a>
+						</div>
+						<div id="collapse6" class="accordion-body collapse">
+							<div class="accordion-inner">
+								Just click the <i>Publish</i> button under the code editor. You can visit your site cliccking the <i>Home</i> button next to it. This site is open to the internet, so don't publish any sensible information in it!!
+							</div>
+						</div>
+					</div>
+					<div class="accordion-group">
+						<div class="accordion-heading">
+							<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse7"> How do I share my code?</a>
+						</div>
+						<div id="collapse7" class="accordion-body collapse">
+							<div class="accordion-inner">
+								In the <i>My Files</i> menu, click on the <i class="icon-share"> </i> icon and copy the URL that appears in the textbox.
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<span id="ruler"></span>
+
+		<!-- container for body -->
+		<div class="container" id="body">
+			<!-- Library and title -->
+			<div class="row" id="top-row">
+				<div class="span6">
+					<div id="extra-controls">
+						<input id="input-title" type="text" placeholder="Document title">
+						<div class="btn-group" id="libraries">
+							<a class="btn dropdown-toggle" data-toggle="dropdown" href=""> Libraries <span class="caret"></span> </a>
+							<ul class="dropdown-menu">
+								<li>
+									<a class="library" value="http://code.jquery.com/jquery-latest.js">jquery-latest.js</a>
+								</li>
+								<li>
+									<a class="library" value="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">jquery-1.9.1</a>
+								</li>
+								<li>
+									<a class="library"  value="https://ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js">prototype-1.7.1.0</a>
+								</li>
+								<li>
+									<a class="library" value="http://yui.yahooapis.com/3.10.1/build/yui/yui-min.js">YUI-3.10.1</a>
+								</li>
+							</ul>
+							<span class="label">0</span>
+						</div><!-- libraries -->
+					</div>
+				</div>
+				<div class="span6">
+					<div id="error-notifications">
+
+					</div>
+				</div>
+			</div><!-- library and title row -->
+			<!-- Codemirror Tabs and error mgmt-->
+			<div class="row">
+				<!-- Tabs -->
+				<div class="span6">
+					<div class="tabbable">
+						<ul class="nav nav-tabs" id="myTab">
+							<li class="active">
+								<a href="#HTML">HTML</a>
+							</li>
+							<li>
+								<a href="#CSS">CSS</a>
+							</li>
+							<li>
+								<a href="#JS">JS</a>
+							</li>
+						</ul>
+					</div>
+				</div><!-- span6 tabs -->
+				<!-- Errors -->
+				<div class="span6">
+					<div class="login-errors">
+
+					</div>
+				</div>
+			</div>
+			<!-- Code editor and preview -->
+			<div class="row">
+				<!-- Code editor -->
+				<div class="span6">
+					<div class="tab-content">
+						<div class="tab-pane active" id="HTML">
+							<label for="code_html" title="Código HTML"> 								<textarea id="code_html"> </textarea> </label>
+						</div>
+						<div class="tab-pane" id="CSS">
+							<label for="code_css" title="Código CSS"> 								<textarea id="code_css"> </textarea> </label>
+						</div>
+						<div class="tab-pane" id="JS">
+							<label for="code_js" title="Código JS"> 								<textarea id="code_js"> </textarea> </label>
+						</div>
+
+					</div>
+					<div id="fileMgmt">
+						
+						<div id='btn-filelist' class="btn-group jsUgr-files dropup">
+							<a class="btn dropdown-toggle" data-toggle="dropdown" href=""> My Files <span class="caret"></span> </a>
+							<ul class="dropdown-menu">
+								<li>
+									<a href="">Login or Register to use this feature</a>
+								</li>
+							</ul>
+						</div><!--/.btn-group-->
+						<div class="btn-group" id="save-publish">
+							<button id="btn-save" type="button" class="btn">
+								Save new
+							</button>
+							<button id="btn-publish" type="button" class="btn">
+								Publish
+							</button> 
+
+							<a href="" id="btn-home" target="blank" role="button" class="btn" data-toggle="modal">Home</a> 
+						</div>	
+						<button id="stop-preview" type="button" class="btn" data-toggle="button">
+							Stop auto-update
+						</button>
+						<a style="display: none" id="share-load"> </a>
+					</div><!--/.fileMgmt -->
+				</div><!--/.span6 -->
+				<!-- Preview -->
+				<div class="span6">
+					<iframe id="preview" style="display: none;" onload="this.style.display='block';" name="Previsualización del código" title="Previsualización" width="100%"></iframe>
+					<div class="span6">
+						<div id="code-notifications">
+	
+						</div>
+					</div>
+				</div><!--/.span6 -->
+			</div><!--/.row Code editor and preview-->
+			<div class='row'>
+				<div class='span12'>
+					<!--jQuery terminal-->
+					<div id="terminal">
+						<script type="text/javascript">
+							var terminal_errores;
+							jQuery(function($, undefined) {
+								terminal_errores = $('#terminal').terminal(function(command, term) {
+									if (command !== '') {
+										try {
+											var result = window.eval(command);
+											if (result !== undefined) {
+												term.echo(new String(result));
+											}
+										} catch(e) {
+											term.error(new String(e));
+										}
+									} else {
+										term.echo('');
+									}
+								}, {
+									greetings : 'Console',
+									name : 'js_demo',
+									prompt : '> '
+								});
+							});
+	
+						</script>
+					</div>
+				</div>
+			</div>
+		</div><!--/#body .container -->
+	</body>
+</html>

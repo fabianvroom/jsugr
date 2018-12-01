@@ -1,0 +1,136 @@
+@import url(http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Open+Sans:400,700,600,300);
+
+/*Bootstrap corrections*/
+
+.modal-body {
+    max-height: 800px;
+}
+#div-register, #div-recover{
+	width: 430px;
+}
+.modal-backdrop, .modal-backdrop.fade.in {
+	opacity: 0.6;
+	filter: alpha(opacity=60);
+}
+#preview {
+	border: 0px;
+	background: #FFFFFF;
+	border: 1px solid #ddd;
+	height: 400px;
+}
+.jsUgr.username{
+	font-size: 18px;
+}
+.CodeMirror{
+	border: 1px solid #ddd;
+	height: 400px;
+	border-top: 0px;
+	cursor: text;
+}
+
+
+.CodeMirror-vscrollbar, .CodeMirror-hscrollbar{
+	cursor: auto;
+}
+
+.nav-tabs {
+	margin-bottom: 0px;
+	padding-left: 45px;
+}
+#libraries, #insert{
+	margin-bottom: 10px;
+}
+#libraries a.library.selected{
+	background: none repeat scroll 0 0 #3a87ad;
+	color: #FFFFFF;
+}
+#libraries a.library:hover{
+	cursor: pointer;
+}
+#libraries span.label {
+	position: absolute;
+	top: 1px;
+	padding: 7px 6px;
+	right: -23px;
+}
+
+#btn-filelist span,#load-blank{
+ 		cursor: pointer;
+}
+
+.file-update{
+ 	position: absolute;
+	right: 10px;
+}
+.file-delete{
+ 	position: absolute;
+	right: 50px;
+}
+.file-share{
+ 	position: absolute;
+	right: 30px;
+}
+
+a.file-load{
+ 	position: relative;
+ 	padding: 3px 15px 3px 8px;
+}
+.this-file-load{
+ 	margin-right: 50px;
+}
+.alert{
+	margin-bottom: 0px;
+}
+#input-password, #input-username{
+	width: 80px;
+}
+.alert .close {
+	top: 0px;
+}
+#extra-controls{
+	clear: both;
+	float: right;
+	margin-right: 24px;
+}
+#ruler { 
+	visibility: hidden; 
+	white-space: nowrap; 
+	position: absolute;
+}
+.btn-group + .btn-group {
+	margin-left: 0px;
+}
+
+
+/* Colors and styles */
+body{
+	background: none repeat scroll 0 0 #EEEEEE;
+	padding-top: 60px;
+	overflow-x: hidden;
+}
+
+#terminal {
+	display: block;
+	height: 200px;
+	padding: 10px;
+	margin-top: 5px;
+	border: solid 4px;
+	border-color: #666;
+	margin-bottom: 100px;
+}
+.terminal{
+	color: #EEE;
+	background-color: #333;
+}
+
+
+#img-loading {
+margin-top: 6px;
+}
+
+#credits img {
+	height: 1.2em;
+	opacity: 0.6;
+	filter: alpha(opacity=60); /* For IE8 and earlier */
+}
+

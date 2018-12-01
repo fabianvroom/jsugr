@@ -1,0 +1,11 @@
+{
+  "name": "aap",
+  "subdomain": "aap",
+  "scripts": {
+    "start": "aap.js"
+  },
+  "version": "0.0.0-1",
+  "engines": {
+    "node": "0.6.19"
+  }
+}

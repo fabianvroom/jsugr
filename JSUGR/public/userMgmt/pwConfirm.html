@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Validation</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<script src="../js/sha256.js"></script>
+		<script src="http://code.jquery.com/jquery-latest.js"></script>
+		<script src="../js/jsUgrRegister.jQuery.js"></script>
+		<script src="../addons/bootstrap/js/bootstrap.js"></script>
+		<script src="../js/scripts.js"></script>
+
+		<!--jquery cookie-->
+		<script src="../js/jquery.cookie.js"></script>
+		
+		<!-- Le styles -->
+		<link href="../addons/bootstrap/css/bootstrap.css" rel="stylesheet">
+		<link href="../css/forms.css" rel="stylesheet">
+
+		<link href="../addons/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="../assets/js/html5shiv.js"></script>
+		<![endif]-->
+
+
+	</head>
+
+	<body>
+
+		<div class="container">
+
+			<form id="formulario" class="form-signin">
+				<h2 class="form-signin-heading">Password reset</h2>
+				<span class="help-block">A reset code has been set to the email adress attached to the account</span>
+				<div class="jsUgr user">
+					<input class="input-block-level" placeholder="Username" name="user" size="10" type="text" title="user" value="" >
+					<img class="jsUgrCheck" src="../image/green_check.png" title="ayuda" height="20" width="20" style="display: none">
+					<span class="jsUgrError"> </span>
+				</div>
+				<div class="jsUgr code">
+					<input class="input-block-level" placeholder="Validation code" name="code" size="10" type="text" title="validation code" value="" >
+					<img class="jsUgrCheck" src="../image/green_check.png" title="ayuda" height="20" width="20" style="display: none">
+					<span class="jsUgrError"> </span>
+				</div>
+				<div class="jsUgr pass">
+					<input  class="input-block-level" placeholder="Password" name="pass" size="10" type="password" title="password" value="" >
+					<img class="jsUgrCheck" src="../image/green_check.png" title="ayuda" height="20" width="20" style="display: none">
+					<span class="jsUgrError"> </span>
+				</div>
+				<div class="jsUgr pass2">
+					<input class="input-block-level" placeholder="Repeat password" name="pass2" size="10" type="password" title="password confirmation" value="" >
+					<img class="jsUgrCheck" src="../image/green_check.png" title="ayuda" height="20" width="20" style="display: none">
+					<span class="jsUgrError"> </span>
+				</div>
+				<div id="button-submit">
+					<button type="button" class="btn btn-large btn-primary" id="jsUgrSend" disabled="disabled">
+						Send
+					</button>
+					<span id='jsUgrError'> </span>
+				</div>
+			</form>
+
+			<script type="text/javascript">
+			$("document").ready(function() {
+				var elem = window.parent.document.getElementById('iframe-recover'); 
+    			if(elem)
+    			elem.style.height = '450px';
+				var user = getVar('user');
+				var code = getVar('code');
+				$('#formulario').jsUgrValidator({user: user, code: code},function(data){
+					$('.jsUgr.user').find('input').val(data.user).trigger('change');
+					$('.jsUgr.code').find('input').val(data.code).trigger('change');
+				});
+				$("#jsUgrSend").jsUgrRegister('reset_pwd', function(data) {
+					if(data.ok){
+						$.cookie('username', data.user, { expires: 1, path: '/' });
+						$.cookie('token', data.token, { expires: 1, path: '/' });
+						if(elem){
+							window.parent.closeModal(data);
+						}else{
+							window.location = "redirect.html"
+						};
+					}else{
+						$("#jsUgrError").html(data.error+". "+data.reason);
+					}
+				});
+			});
+
+			</script>
+		</div>
+	</body>
+</html>
