@@ -36,8 +36,8 @@ var smtpTransport = nodemailer.createTransport({
     port: 587,
     secure: false, // true for 465, false for other ports
     auth: {
-        user: "vroom", 
-        pass: "fa24an" 
+        user: "user", 
+        pass: "pass" 
     }
 });
 //var logFile = fs.createWriteStream('jsUgr.log', {flags: 'w'}); //use {flags: 'w'} to open in write mode
